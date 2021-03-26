@@ -38,8 +38,21 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     return height;
   }
 
+  function grid_getxyOfPoint([pxx, pxy]) {
+    const cellSize = px_getCellSize();
+    const gridx = Math.floor(pxx / (cellSize[0] + _gap));
+    const gridy = Math.floor(pxy / (cellSize[1] + _gap));
+    return [gridx, gridy];
+  }
+
+  function grid_calVector([pxFromx, pxFromy], [pxTox, pxToy]) {
+    const [gridFromx, gridFromy] = grid_getxyOfPoint([pxFromx, pxFromy]);
+    const [gridTox, gridToy] = grid_getxyOfPoint([pxTox, pxToy]);
+    return [gridTox - gridFromx, gridToy - gridFromy];
+  }
+
   function showState() {
-    console.log(state);
+    console.log(_state);
   }
 
   function setGridParams({width, cols, rowHeight, gap}) {
@@ -76,6 +89,8 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     getPane,
     px_getCellSize,
     px_getGridHeight,
+    grid_getxyOfPoint,
+    grid_calVector,
     showState,
     setGridParams,
     addPane,

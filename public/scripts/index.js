@@ -50,21 +50,16 @@ $(document).ready(function() {
         const {top: gridTop, left: gridLeft} = $gridEl.offset();
         const {pageX, pageY} = e;
         const dragTo = [pageX - gridLeft, pageY - gridTop];
-        paneOnDrag.grid_move(paneOnDrag.grid_calMoveVector(grid, dragFrom, dragTo));
+        paneOnDrag.grid_move(grid.grid_calVector(dragFrom, dragTo));
         dragFrom = dragTo;
         drawGrid(grid);
       }
     })
-    .on('mouseup', function(e) {
+    .on('mouseup', function() {
       if (dragMode) {
         dragMode = false;
         paneOnDrag = null;
         dragFrom = null;
-//         paneOnDrag = grid.getPane($(this).data('pane-symbol'));
-//         console.log(e);
-//         const {top: gridTop, left: gridLeft} = $gridEl.offset();
-//         const {pageX, pageY} = e;
-//         dragFrom = [pageX - gridLeft, pageY - gridTop];
       }
     });
 

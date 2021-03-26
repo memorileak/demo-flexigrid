@@ -54,20 +54,6 @@ function flexiPane({onGridx, onGridy, widthByCells, heightByCells}) {
     ]);
   }
 
-  function grid_getxyOfPoint(gridInstance, [pxx, pxy]) {
-    const cellSize = gridInstance.px_getCellSize();
-    const gridParams = gridInstance.getGridParams();
-    const gridx = Math.floor(pxx / (cellSize[0] + gridParams.gap));
-    const gridy = Math.floor(pxy / (cellSize[1] + gridParams.gap));
-    return [gridx, gridy];
-  }
-
-  function grid_calMoveVector(gridInstance, [pxFromx, pxFromy], [pxTox, pxToy]) {
-    const [gridFromx, gridFromy] = grid_getxyOfPoint(gridInstance, [pxFromx, pxFromy]);
-    const [gridTox, gridToy] = grid_getxyOfPoint(gridInstance, [pxTox, pxToy]);
-    return [gridTox - gridFromx, gridToy - gridFromy];
-  }
-
   return {
     px_getxy,
     px_getWidthHeight,
@@ -75,6 +61,5 @@ function flexiPane({onGridx, onGridy, widthByCells, heightByCells}) {
     grid_getxy,
     grid_getWidthHeight,
     grid_move,
-    grid_calMoveVector,
   };
 };
