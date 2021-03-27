@@ -71,6 +71,7 @@ $(document).ready(function() {
         const {pageX, pageY} = e;
         const dragTo = [pageX - gridLeft, pageY - gridTop];
         previewPane.grid_move(grid.grid_calVector(dragFrom, dragTo));
+        previewPane.fitToSlot();
         paneOnDrag.px_move(grid.px_calVector(dragFrom, dragTo));
         dragFrom = dragTo;
         drawGrid(grid, true);
@@ -80,6 +81,7 @@ $(document).ready(function() {
       if (dragMode) {
         const previewPane = grid.getPreviewPane();
         paneOnDrag.grid_setxy(previewPane.grid_getxy());
+        paneOnDrag.fitToSlot();
         dragMode = false;
         paneOnDrag = null;
         dragFrom = null;
