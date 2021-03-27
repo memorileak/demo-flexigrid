@@ -15,6 +15,13 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     _ownSymbol = ownSymbol;
   }
 
+  function fitToSlot() {
+    _onGridx = Math.round(_onGridx);
+    _onGridy = Math.round(_onGridy);
+    _onGridWidth = Math.round(_onGridWidth);
+    _onGridHeight = Math.round(_onGridHeight);
+  }
+
   function px_getxy() {
     const cellSize = _gridInstance.px_getCellSize();
     const gridParams = _gridInstance.getGridParams();
@@ -107,6 +114,7 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
   return {
     getSymbol,
     belongsToGrid,
+    fitToSlot,
     px_getxy,
     px_getWidthHeight,
     px_getBottomRightxy,
