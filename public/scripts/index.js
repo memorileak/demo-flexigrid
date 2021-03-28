@@ -5,7 +5,7 @@ function drawGrid(gridInstance, withPreview = false) {
     const pane = gridInstance.getPane(paneSymbol);
     const [x, y] = pane.px_getxy();
     const [width, height] = pane.px_getWidthHeight();
-    const $paneEl = $('<div class="pane"></div>');
+    const $paneEl = $('<div class="pane"><div class="resizer"></div></div>');
     $paneEl.data('pane-symbol', paneSymbol);
     $paneEl.css('position', 'absolute');
     $paneEl.css('background-color', '#007ee6');
@@ -88,6 +88,46 @@ $(document).ready(function() {
         drawGrid(grid);
       }
     });
+
+  let resizeMode = false;
+  let paneOnResize = null;
+  let resizeFrom = null;
+  $gridEl
+    .on('mousedown', '.resizer', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const $paneEl = $(this).parent('.pane');
+      resizeMode = true;
+      paneOnResize = grid.getPane($paneEl.data('pane-symbol'));
+      grid.previewForPane(paneOnResize);
+      const {top: gridTop, left: gridLeft} = $gridEl.offset();
+      const {pageX, pageY} = e;
+      resizeFrom = [pageX - gridLeft, pageY - gridTop];
+    })
+    .on('mousemove', function(e) {
+      if (resizeMode) {
+        const previewPane = grid.getPreviewPane();
+        const {top: gridTop, left: gridLeft} = $gridEl.offset();
+        const {pageX, pageY} = e;
+        const resizeTo = [pageX - gridLeft, pageY - gridTop];
+        previewPane.grid_resize(grid.grid_calVector(resizeFrom, resizeTo));
+        previewPane.fitToSlot();
+        paneOnResize.px_resize(grid.px_calVector(resizeFrom, resizeTo));
+        resizeFrom = resizeTo;
+        drawGrid(grid, true);
+      }
+    })
+    .on('mouseup', function() {
+      if (resizeMode) {
+        const previewPane = grid.getPreviewPane();
+        paneOnResize.grid_setWidthHeight(previewPane.grid_getWidthHeight());
+        paneOnResize.fitToSlot();
+        resizeMode = false;
+        paneOnResize = null;
+        resizeFrom = null;
+        drawGrid(grid);
+      }
+    })
 
   $(window).on('resize', () => {
     grid.setGridParams({width: $gridEl.innerWidth()});

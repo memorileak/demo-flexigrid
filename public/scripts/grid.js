@@ -72,10 +72,6 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     return [gridTox - gridFromx, gridToy - gridFromy];
   }
 
-  function showState() {
-    console.log(_paneInstances);
-  }
-
   function setGridParams({width, cols, rowHeight, gap}) {
     if (typeof width === 'number') {
       _width = width;
@@ -118,7 +114,6 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     px_calVector,
     grid_getxyOfPoint,
     grid_calVector,
-    showState,
     setGridParams,
     addPane,
     removePane,

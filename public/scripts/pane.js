@@ -1,10 +1,18 @@
 function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
   let _onGridx = typeof onGridx === 'number' ? onGridx : 0;
   let _onGridy = typeof onGridy === 'number' ? onGridy : 0;
-  let _onGridWidth = typeof onGridWidth === 'number' ? onGridWidth : 2;
-  let _onGridHeight = typeof onGridHeight === 'number' ? onGridHeight : 2;
+  let _onGridWidth = _validGridWidth(typeof onGridWidth === 'number' ? onGridWidth : 2);
+  let _onGridHeight = _validGridHeight(typeof onGridHeight === 'number' ? onGridHeight : 2);
   let _gridInstance = null;
   let _ownSymbol = null;
+
+  function _validGridWidth(gridWidth) {
+    return (gridWidth < 1) ? 1 : gridWidth;
+  }
+
+  function _validGridHeight(gridHeight) {
+    return (gridHeight < 1) ? 1 : gridHeight;
+  }
 
   function getSymbol() {
     return _ownSymbol;
@@ -18,8 +26,8 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
   function fitToSlot() {
     _onGridx = Math.round(_onGridx);
     _onGridy = Math.round(_onGridy);
-    _onGridWidth = Math.round(_onGridWidth);
-    _onGridHeight = Math.round(_onGridHeight);
+    _onGridWidth = _validGridWidth(Math.round(_onGridWidth));
+    _onGridHeight = _validGridHeight(Math.round(_onGridHeight));
   }
 
   function px_getxy() {
@@ -63,8 +71,8 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     if (typeof pxWidth === 'number' && typeof pxHeight === 'number') {
       const cellSize = _gridInstance.px_getCellSize();
       const gridParams = _gridInstance.getGridParams();
-      _onGridWidth = (pxWidth + gridParams.gap) / (cellSize[0] + gridParams.gap);
-      _onGridHeight = (pxHeight + gridParams.gap) / (cellSize[1] + gridParams.gap);
+      _onGridWidth = _validGridWidth((pxWidth + gridParams.gap) / (cellSize[0] + gridParams.gap));
+      _onGridHeight = _validGridHeight((pxHeight + gridParams.gap) / (cellSize[1] + gridParams.gap));
     } else {
       console.error('Pane.px_setWidthHeight: width, height must be numbers');
     }
@@ -75,6 +83,14 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     px_setxy([
       pxPositionx + pxMoveVectorx,
       pxPositiony + pxMoveVectory,
+    ]);
+  }
+
+  function px_resize([pxResizeVectorx, pxResizeVectory]) {
+    const [pxWidth, pxHeight] = px_getWidthHeight();
+    px_setWidthHeight([
+      pxWidth + pxResizeVectorx,
+      pxHeight + pxResizeVectory,
     ]);
   }
 
@@ -97,8 +113,8 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
 
   function grid_setWidthHeight([gridWidth, gridHeight]) {
     if (typeof gridWidth === 'number' && typeof gridHeight === 'number') {
-      _onGridWidth = gridWidth;
-      _onGridHeight = gridHeight;
+      _onGridWidth = _validGridWidth(gridWidth);
+      _onGridHeight = _validGridHeight(gridHeight);
     } else {
       console.error('Pane.grid_setWidthHeight: width, height must be numbers');
     }
@@ -108,6 +124,13 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     grid_setxy([
       _onGridx + gridMoveVectorx,
       _onGridy + gridMoveVectory,
+    ]);
+  }
+
+  function grid_resize([gridResizeVectorx, gridResizeVectory]) {
+    grid_setWidthHeight([
+      _onGridWidth + gridResizeVectorx,
+      _onGridHeight + gridResizeVectory,
     ]);
   }
 
@@ -121,10 +144,12 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     px_setxy,
     px_setWidthHeight,
     px_move,
+    px_resize,
     grid_getxy,
     grid_getWidthHeight,
     grid_setxy,
     grid_setWidthHeight,
     grid_move,
+    grid_resize,
   };
 };

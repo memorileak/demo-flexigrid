@@ -8,3 +8,13 @@ body {
   position: relative;
   background-color: black;
 }
+
+.flexigrid .pane .resizer {
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffffb3;
+  cursor: se-resize;
+}
