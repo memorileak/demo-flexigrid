@@ -24,11 +24,15 @@ function drawGrid(gridInstance, withPreview = false) {
     const [width, height] = previewPane.px_getWidthHeight();
     $previewPaneEl = $('<div class="preview-pane"></div>');
     $previewPaneEl.css('position', 'absolute');
-    $previewPaneEl.css('background-color', '#007ee640');
     $previewPaneEl.css('left', `${x}px`);
     $previewPaneEl.css('top', `${y}px`);
     $previewPaneEl.css('width', `${width}px`);
     $previewPaneEl.css('height', `${height}px`);
+    if (gridInstance.haveCollision()) {
+      $previewPaneEl.css('background-color', '#ff000040');
+    } else {
+      $previewPaneEl.css('background-color', '#007ee640');
+    }
   }
 
   $('#flexigrid').css('height', `${gridHeight}px`);
@@ -40,7 +44,7 @@ function drawGrid(gridInstance, withPreview = false) {
 $(document).ready(function() {
   const $gridEl = $('#flexigrid');
 
-  const grid = flexiGrid({width: $gridEl.innerWidth(), gap: 10});
+  const grid = flexiGrid({width: $gridEl.innerWidth(), rowHeight: 60, gap: 10});
   window.grid = grid;
 
   grid.setPreviewPane(flexiPane({onGridx: 10, onGridy: 0, onGridWidth: 1, onGridHeight: 1}));
@@ -55,16 +59,18 @@ $(document).ready(function() {
   let dragMode = false;
   let paneOnDrag = null;
   let pxOffsetToTopLeftVector = null;
+  let originalGridPosition = null;
   $gridEl
     .on('mousedown', '.pane', function(e) {
       dragMode = true;
       paneOnDrag = grid.getPane($(this).data('pane-symbol'));
-      grid.previewForPane(paneOnDrag);
+      grid.attachPreview(paneOnDrag);
       const {top: gridTop, left: gridLeft} = $gridEl.offset();
       const {pageX, pageY} = e;
       const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
       const pxTopLeft = paneOnDrag.px_getxy();
       pxOffsetToTopLeftVector = grid.px_calVector(pxPickPoint, pxTopLeft);
+      originalGridPosition = paneOnDrag.grid_getxy();
     })
     .on('mousemove', function(e) {
       if (dragMode) {
@@ -80,9 +86,14 @@ $(document).ready(function() {
     })
     .on('mouseup', function() {
       if (dragMode) {
-        const previewPane = grid.getPreviewPane();
-        paneOnDrag.grid_setxy(previewPane.grid_getxy());
+        if (grid.haveCollision()) {
+          paneOnDrag.grid_setxy(originalGridPosition);
+        } else {
+          const previewPane = grid.getPreviewPane();
+          paneOnDrag.grid_setxy(previewPane.grid_getxy());
+        }
         paneOnDrag.fitToSlot();
+        grid.detachPreview();
         dragMode = false;
         paneOnDrag = null;
         pxOffsetPositioningVector = null;
@@ -93,6 +104,7 @@ $(document).ready(function() {
   let resizeMode = false;
   let paneOnResize = null;
   let pxOffsetToBottomRightVector = null;
+  let originalGridSize = null;
   $gridEl
     .on('mousedown', '.resizer', function(e) {
       e.preventDefault();
@@ -100,12 +112,13 @@ $(document).ready(function() {
       const $paneEl = $(this).parent('.pane');
       resizeMode = true;
       paneOnResize = grid.getPane($paneEl.data('pane-symbol'));
-      grid.previewForPane(paneOnResize);
+      grid.attachPreview(paneOnResize);
       const {top: gridTop, left: gridLeft} = $gridEl.offset();
       const {pageX, pageY} = e;
       const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
       const pxBottomRight = paneOnResize.px_getBottomRightxy();
       pxOffsetToBottomRightVector = grid.px_calVector(pxPickPoint, pxBottomRight);
+      originalGridSize = paneOnResize.grid_getWidthHeight();
     })
     .on('mousemove', function(e) {
       if (resizeMode) {
@@ -121,9 +134,14 @@ $(document).ready(function() {
     })
     .on('mouseup', function() {
       if (resizeMode) {
-        const previewPane = grid.getPreviewPane();
-        paneOnResize.grid_setWidthHeight(previewPane.grid_getWidthHeight());
+        if (grid.haveCollision()) {
+          paneOnResize.grid_setWidthHeight(originalGridSize);
+        } else {
+          const previewPane = grid.getPreviewPane();
+          paneOnResize.grid_setWidthHeight(previewPane.grid_getWidthHeight());
+        }
         paneOnResize.fitToSlot();
+        grid.detachPreview();
         resizeMode = false;
         paneOnResize = null;
         pxOffsetToBottomRightVector = null;

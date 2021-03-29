@@ -4,8 +4,21 @@ function flexiGrid({width, cols, rowHeight, gap}) {
   let _rowHeight = typeof rowHeight === 'number' ? rowHeight : 80;
   let _gap = typeof gap === 'number' ? gap : 5;
   let _previewPane = null;
+  let _paneInPreview = null;
   const _paneSymbols = [];
   const _paneInstances = {};
+
+  function cellIndiciesOfPane(paneInstance) {
+    const [gridx, gridy] = paneInstance.grid_getxy();
+    const [gridWidth, gridHeight] = paneInstance.grid_getWidthHeight();
+    const result = [];
+    for (let dy = 0; dy < gridHeight; dy += 1) {
+      for (let dx = 0; dx < gridWidth; dx += 1) {
+        result.push((gridx + dx) + _cols * (gridy + dy));
+      }
+    }
+    return result;
+  }
 
   function getGridParams() {
     return {
@@ -35,9 +48,14 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     return previewPaneSymbol;
   }
 
-  function previewForPane(paneInstance) {
+  function attachPreview(paneInstance) {
+    _paneInPreview = paneInstance;
     _previewPane.grid_setxy(paneInstance.grid_getxy());
     _previewPane.grid_setWidthHeight(paneInstance.grid_getWidthHeight());
+  }
+
+  function detachPreview() {
+    _paneInPreview = null;
   }
 
   function px_getCellSize() {
@@ -64,6 +82,11 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     const gridx = Math.floor(pxx / (cellSize[0] + _gap));
     const gridy = Math.floor(pxy / (cellSize[1] + _gap));
     return [gridx, gridy];
+  }
+
+  function grid_getGridHeight() {
+    const [, gridMaxy] = grid_getxyOfPoint([0, px_getGridHeight()]);
+    return gridMaxy + 1;
   }
 
   function grid_calVector([pxFromx, pxFromy], [pxTox, pxToy]) {
@@ -102,21 +125,48 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     delete _paneInstances[paneSymbol];
   }
 
+  function haveCollision() {
+    const numberOfCells = _cols * grid_getGridHeight();
+    const cdList = new Array(numberOfCells).fill(0);
+    let panesToConsider = [];
+    if (_paneInPreview) {
+      panesToConsider = (
+        _paneSymbols
+          .filter((pSym) => (pSym !== _paneInPreview.getSymbol()))
+          .map((pSym) => getPane(pSym))
+      ).concat(
+        [getPreviewPane()]
+      );
+    } else {
+      panesToConsider = _paneSymbols.map((pSym) => getPane(pSym));
+    }
+    for (let i = 0; i < panesToConsider.length; i += 1) {
+      const paneCellIndices = cellIndiciesOfPane(panesToConsider[i]);
+      for (let cellIndexI = 0; cellIndexI < paneCellIndices.length; cellIndexI += 1) {
+        cdList[paneCellIndices[cellIndexI]] += 1;
+      }
+    }
+    return cdList.some((cdSum) => cdSum > 1);
+  }
+
   const gridInstance = {
     getGridParams,
     getPaneSymbols,
     getPane,
     getPreviewPane,
     setPreviewPane,
-    previewForPane,
+    attachPreview,
+    detachPreview,
     px_getCellSize,
     px_getGridHeight,
     px_calVector,
     grid_getxyOfPoint,
+    grid_getGridHeight,
     grid_calVector,
     setGridParams,
     addPane,
     removePane,
+    haveCollision,
   };
 
   return gridInstance;
