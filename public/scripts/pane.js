@@ -6,6 +6,14 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
   let _gridInstance = null;
   let _ownSymbol = null;
 
+  function _intCloseToZero(number) {
+    if (number >= 0) {
+      return Math.floor(number);
+    } else {
+      return -Math.floor(-number);
+    }
+  }
+
   function _validGridWidth(gridWidth) {
     return (gridWidth < 1) ? 1 : gridWidth;
   }
@@ -78,19 +86,22 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     }
   }
 
-  function px_move([pxMoveVectorx, pxMoveVectory]) {
-    const [pxPositionx, pxPositiony] = px_getxy();
+  function px_positioning([pxPickPointx, pxPickPointy], [pxOffsetToTopLeftx, pxOffsetToTopLefty]) {
     px_setxy([
-      pxPositionx + pxMoveVectorx,
-      pxPositiony + pxMoveVectory,
+      pxPickPointx + pxOffsetToTopLeftx,
+      pxPickPointy + pxOffsetToTopLefty,
     ]);
   }
 
-  function px_resize([pxResizeVectorx, pxResizeVectory]) {
-    const [pxWidth, pxHeight] = px_getWidthHeight();
+  function px_sizing([pxPickPointx, pxPickPointy], [pxOffsetToBottomRightx, pxOffsetToBottomRighty]) {
+    const [pxTopLeftx, pxTopLefty] = px_getxy();
+    const [pxBottomRightx, pxBottomRighty] = [
+      pxPickPointx + pxOffsetToBottomRightx,
+      pxPickPointy + pxOffsetToBottomRighty,
+    ];
     px_setWidthHeight([
-      pxWidth + pxResizeVectorx,
-      pxHeight + pxResizeVectory,
+      pxBottomRightx - pxTopLeftx + 1,
+      pxBottomRighty - pxTopLefty + 1,
     ]);
   }
 
@@ -120,17 +131,36 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     }
   }
 
-  function grid_move([gridMoveVectorx, gridMoveVectory]) {
+  function grid_positioning([pxPickPointx, pxPickPointy], [pxOffsetToTopLeftx, pxOffsetToTopLefty]) {
+    const cellSize = _gridInstance.px_getCellSize();
+    const gridParams = _gridInstance.getGridParams();
+    const [gridPickPointx, gridPickPointy] = _gridInstance.grid_getxyOfPoint([pxPickPointx, pxPickPointy]);
+    const [gridOffsetToTopLeftx, gridOffsetToTopLefty] = [
+      _intCloseToZero(pxOffsetToTopLeftx / (cellSize[0] + gridParams.gap)),
+      _intCloseToZero(pxOffsetToTopLefty / (cellSize[1] + gridParams.gap)),
+    ];
     grid_setxy([
-      _onGridx + gridMoveVectorx,
-      _onGridy + gridMoveVectory,
+      gridPickPointx + gridOffsetToTopLeftx,
+      gridPickPointy + gridOffsetToTopLefty,
     ]);
   }
 
-  function grid_resize([gridResizeVectorx, gridResizeVectory]) {
+  function grid_sizing([pxPickPointx, pxPickPointy], [pxOffsetToBottomRightx, pxOffsetToBottomRighty]) {
+    const cellSize = _gridInstance.px_getCellSize();
+    const gridParams = _gridInstance.getGridParams();
+    const [gridPickPointx, gridPickPointy] = _gridInstance.grid_getxyOfPoint([pxPickPointx, pxPickPointy]);
+    const [gridOffsetToBottomRightx, gridOffsetToBottomRighty] = [
+      _intCloseToZero(pxOffsetToBottomRightx / (cellSize[0] + gridParams.gap)),
+      _intCloseToZero(pxOffsetToBottomRighty / (cellSize[1] + gridParams.gap)),
+    ];
+    const [gridTopLeftx, gridTopLefty] = grid_getxy();
+    const [gridBottomRightx, gridBottomRighty] = [
+      gridPickPointx + gridOffsetToBottomRightx,
+      gridPickPointy + gridOffsetToBottomRighty,
+    ];
     grid_setWidthHeight([
-      _onGridWidth + gridResizeVectorx,
-      _onGridHeight + gridResizeVectory,
+      gridBottomRightx - gridTopLeftx + 1,
+      gridBottomRighty - gridTopLefty + 1,
     ]);
   }
 
@@ -143,13 +173,13 @@ function flexiPane({onGridx, onGridy, onGridWidth, onGridHeight}) {
     px_getBottomRightxy,
     px_setxy,
     px_setWidthHeight,
-    px_move,
-    px_resize,
+    px_positioning,
+    px_sizing,
     grid_getxy,
     grid_getWidthHeight,
     grid_setxy,
     grid_setWidthHeight,
-    grid_move,
-    grid_resize,
+    grid_positioning,
+    grid_sizing,
   };
 };

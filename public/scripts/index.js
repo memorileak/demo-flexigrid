@@ -54,7 +54,7 @@ $(document).ready(function() {
 
   let dragMode = false;
   let paneOnDrag = null;
-  let dragFrom = null;
+  let pxOffsetToTopLeftVector = null;
   $gridEl
     .on('mousedown', '.pane', function(e) {
       dragMode = true;
@@ -62,18 +62,19 @@ $(document).ready(function() {
       grid.previewForPane(paneOnDrag);
       const {top: gridTop, left: gridLeft} = $gridEl.offset();
       const {pageX, pageY} = e;
-      dragFrom = [pageX - gridLeft, pageY - gridTop];
+      const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
+      const pxTopLeft = paneOnDrag.px_getxy();
+      pxOffsetToTopLeftVector = grid.px_calVector(pxPickPoint, pxTopLeft);
     })
     .on('mousemove', function(e) {
       if (dragMode) {
         const previewPane = grid.getPreviewPane();
         const {top: gridTop, left: gridLeft} = $gridEl.offset();
         const {pageX, pageY} = e;
-        const dragTo = [pageX - gridLeft, pageY - gridTop];
-        previewPane.grid_move(grid.grid_calVector(dragFrom, dragTo));
+        const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
+        previewPane.grid_positioning(pxPickPoint, pxOffsetToTopLeftVector);
         previewPane.fitToSlot();
-        paneOnDrag.px_move(grid.px_calVector(dragFrom, dragTo));
-        dragFrom = dragTo;
+        paneOnDrag.px_positioning(pxPickPoint, pxOffsetToTopLeftVector);
         drawGrid(grid, true);
       }
     })
@@ -84,14 +85,14 @@ $(document).ready(function() {
         paneOnDrag.fitToSlot();
         dragMode = false;
         paneOnDrag = null;
-        dragFrom = null;
+        pxOffsetPositioningVector = null;
         drawGrid(grid);
       }
     });
 
   let resizeMode = false;
   let paneOnResize = null;
-  let resizeFrom = null;
+  let pxOffsetToBottomRightVector = null;
   $gridEl
     .on('mousedown', '.resizer', function(e) {
       e.preventDefault();
@@ -102,18 +103,19 @@ $(document).ready(function() {
       grid.previewForPane(paneOnResize);
       const {top: gridTop, left: gridLeft} = $gridEl.offset();
       const {pageX, pageY} = e;
-      resizeFrom = [pageX - gridLeft, pageY - gridTop];
+      const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
+      const pxBottomRight = paneOnResize.px_getBottomRightxy();
+      pxOffsetToBottomRightVector = grid.px_calVector(pxPickPoint, pxBottomRight);
     })
     .on('mousemove', function(e) {
       if (resizeMode) {
         const previewPane = grid.getPreviewPane();
         const {top: gridTop, left: gridLeft} = $gridEl.offset();
         const {pageX, pageY} = e;
-        const resizeTo = [pageX - gridLeft, pageY - gridTop];
-        previewPane.grid_resize(grid.grid_calVector(resizeFrom, resizeTo));
+        const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
+        previewPane.grid_sizing(pxPickPoint, pxOffsetToBottomRightVector);
         previewPane.fitToSlot();
-        paneOnResize.px_resize(grid.px_calVector(resizeFrom, resizeTo));
-        resizeFrom = resizeTo;
+        paneOnResize.px_sizing(pxPickPoint, pxOffsetToBottomRightVector);
         drawGrid(grid, true);
       }
     })
@@ -124,7 +126,7 @@ $(document).ready(function() {
         paneOnResize.fitToSlot();
         resizeMode = false;
         paneOnResize = null;
-        resizeFrom = null;
+        pxOffsetToBottomRightVector = null;
         drawGrid(grid);
       }
     })
