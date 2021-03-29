@@ -28,7 +28,7 @@ function drawGrid(gridInstance, withPreview = false) {
     $previewPaneEl.css('top', `${y}px`);
     $previewPaneEl.css('width', `${width}px`);
     $previewPaneEl.css('height', `${height}px`);
-    if (gridInstance.haveCollision()) {
+    if (gridInstance.hasPreviewCollision()) {
       $previewPaneEl.css('background-color', '#ff000040');
     } else {
       $previewPaneEl.css('background-color', '#007ee640');
@@ -86,7 +86,7 @@ $(document).ready(function() {
     })
     .on('mouseup', function() {
       if (dragMode) {
-        if (grid.haveCollision()) {
+        if (grid.hasPreviewCollision()) {
           paneOnDrag.grid_setxy(originalGridPosition);
         } else {
           const previewPane = grid.getPreviewPane();
@@ -134,7 +134,7 @@ $(document).ready(function() {
     })
     .on('mouseup', function() {
       if (resizeMode) {
-        if (grid.haveCollision()) {
+        if (grid.hasPreviewCollision()) {
           paneOnResize.grid_setWidthHeight(originalGridSize);
         } else {
           const previewPane = grid.getPreviewPane();

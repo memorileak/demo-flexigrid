@@ -8,16 +8,15 @@ function flexiGrid({width, cols, rowHeight, gap}) {
   const _paneSymbols = [];
   const _paneInstances = {};
 
-  function cellIndiciesOfPane(paneInstance) {
-    const [gridx, gridy] = paneInstance.grid_getxy();
-    const [gridWidth, gridHeight] = paneInstance.grid_getWidthHeight();
-    const result = [];
-    for (let dy = 0; dy < gridHeight; dy += 1) {
-      for (let dx = 0; dx < gridWidth; dx += 1) {
-        result.push((gridx + dx) + _cols * (gridy + dy));
-      }
-    }
-    return result;
+  function isTwoPanesCollided(paneInstance1, paneInstance2) {
+    const [x1, y1] = paneInstance1.grid_getxy();
+    const [w1, h1] = paneInstance1.grid_getWidthHeight();
+    const [x2, y2] = paneInstance2.grid_getxy();
+    const [w2, h2] = paneInstance2.grid_getWidthHeight();
+    return (
+      x1 <= x2 + w2 - 1 && x1 + w1 - 1 >= x2
+      && y1 <= y2 + h2 - 1 && y1 + h1 - 1 >= y2
+    );
   }
 
   function getGridParams() {
@@ -125,9 +124,7 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     delete _paneInstances[paneSymbol];
   }
 
-  function haveCollision() {
-    const numberOfCells = _cols * grid_getGridHeight();
-    const cdList = new Array(numberOfCells).fill(0);
+  function hasCollision() {
     let panesToConsider = [];
     if (_paneInPreview) {
       panesToConsider = (
@@ -140,13 +137,32 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     } else {
       panesToConsider = _paneSymbols.map((pSym) => getPane(pSym));
     }
-    for (let i = 0; i < panesToConsider.length; i += 1) {
-      const paneCellIndices = cellIndiciesOfPane(panesToConsider[i]);
-      for (let cellIndexI = 0; cellIndexI < paneCellIndices.length; cellIndexI += 1) {
-        cdList[paneCellIndices[cellIndexI]] += 1;
+    for (let i = 0; i < panesToConsider.length - 1; i += 1) {
+      for (let j = i + 1; j < panesToConsider.length; j += 1) {
+        if (isTwoPanesCollided(panesToConsider[i], panesToConsider[j])) {
+          return true;
+        }
       }
     }
-    return cdList.some((cdSum) => cdSum > 1);
+    return false;
+  }
+
+  function hasPreviewCollision() {
+    const previewPane = getPreviewPane();
+    let panesToConsider = [];
+    if (_paneInPreview) {
+      panesToConsider = (
+        _paneSymbols
+          .filter((pSym) => (pSym !== _paneInPreview.getSymbol()))
+          .map((pSym) => getPane(pSym))
+      );
+      for (let i = 0; i < panesToConsider.length; i += 1) {
+        if (isTwoPanesCollided(previewPane, panesToConsider[i])) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   const gridInstance = {
@@ -166,7 +182,8 @@ function flexiGrid({width, cols, rowHeight, gap}) {
     setGridParams,
     addPane,
     removePane,
-    haveCollision,
+    hasCollision,
+    hasPreviewCollision,
   };
 
   return gridInstance;
