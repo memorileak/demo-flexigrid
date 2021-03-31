@@ -1,12 +1,14 @@
+import {flexiGrid, flexiPane} from '@tpacks/flexigrid';
+
 function drawGrid(gridInstance, withPreview = false) {
   const gridHeight = gridInstance.px_getGridHeight();
-  $paneEls = [];
-  for (const paneSymbol of gridInstance.getPaneSymbols()) {
-    const pane = gridInstance.getPane(paneSymbol);
+  let $paneEls = [];
+  for (const paneId of gridInstance.getPaneIds()) {
+    const pane = gridInstance.getPane(paneId);
     const [x, y] = pane.px_getxy();
     const [width, height] = pane.px_getWidthHeight();
     const $paneEl = $('<div class="pane"><div class="resizer"></div></div>');
-    $paneEl.data('pane-symbol', paneSymbol);
+    $paneEl.data('pane-symbol', paneId);
     $paneEl.css('position', 'absolute');
     $paneEl.css('background-color', '#007ee6');
     // $paneEl.css('border', '1px solid white');
@@ -96,7 +98,7 @@ $(document).ready(function() {
         grid.detachPreview();
         dragMode = false;
         paneOnDrag = null;
-        pxOffsetPositioningVector = null;
+        pxOffsetToTopLeftVector = null;
         drawGrid(grid);
       }
     });

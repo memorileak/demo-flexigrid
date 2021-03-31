@@ -1,0 +1,38 @@
+{
+  "name": "demo-flexigrid",
+  "version": "0.0.0",
+  "description": "Demo project for FlexiGrid library - a library helps you make a grid with resizable and movable panes on it, like Kibana dashboard.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve",
+    "build-dev": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tungnvan/demo-flexigrid.git"
+  },
+  "keywords": [
+    "flexigrid",
+    "demo"
+  ],
+  "author": "tungnvan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tungnvan/demo-flexigrid/issues"
+  },
+  "homepage": "https://github.com/tungnvan/demo-flexigrid#readme",
+  "dependencies": {
+    "@tpacks/flexigrid": "git+https://github.com/tungnvan/npm-tpacks-flexigrid.git#4e442d00cc22a265aa69940eb45f1e608a5ce5a1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/preset-env": "^7.13.12",
+    "babel-loader": "^8.2.2",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^8.1.0",
+    "html-webpack-plugin": "^5.3.1",
+    "webpack": "^5.28.0",
+    "webpack-cli": "^4.6.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}
