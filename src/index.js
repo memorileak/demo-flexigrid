@@ -7,15 +7,16 @@ function drawGrid(gridInstance, withPreview = false) {
     const pane = gridInstance.getPane(paneId);
     const [x, y] = pane.px_getxy();
     const [width, height] = pane.px_getWidthHeight();
+    const zIndex = pane.getZIndexLevel();
     const $paneEl = $('<div class="pane"><div class="resizer"></div></div>');
     $paneEl.data('pane-symbol', paneId);
     $paneEl.css('position', 'absolute');
     $paneEl.css('background-color', '#007ee6');
-    // $paneEl.css('border', '1px solid white');
     $paneEl.css('left', `${x}px`);
     $paneEl.css('top', `${y}px`);
     $paneEl.css('width', `${width}px`);
     $paneEl.css('height', `${height}px`);
+    $paneEl.css('z-index', `${zIndex}`);
     $paneEls.push($paneEl);
   }
 
@@ -24,12 +25,14 @@ function drawGrid(gridInstance, withPreview = false) {
     const previewPane = gridInstance.getPreviewPane();
     const [x, y] = previewPane.px_getxy();
     const [width, height] = previewPane.px_getWidthHeight();
+    const zIndex = previewPane.getZIndexLevel();
     $previewPaneEl = $('<div class="preview-pane"></div>');
     $previewPaneEl.css('position', 'absolute');
     $previewPaneEl.css('left', `${x}px`);
     $previewPaneEl.css('top', `${y}px`);
     $previewPaneEl.css('width', `${width}px`);
     $previewPaneEl.css('height', `${height}px`);
+    $previewPaneEl.css('z-index', `${zIndex}`);
     if (gridInstance.hasPreviewCollision()) {
       $previewPaneEl.css('background-color', '#ff000040');
     } else {
