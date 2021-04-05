@@ -1,15 +1,15 @@
 import {flexiGrid, flexiPane} from '@tpacks/flexigrid';
 
 function drawGrid(gridInstance, withPreview = false) {
-  const gridHeight = gridInstance.px_getGridHeight();
+  const gridHeight = gridInstance.getGridHeightByPixel();
   let $paneEls = [];
   for (const paneId of gridInstance.getPaneIds()) {
     const pane = gridInstance.getPane(paneId);
-    const [x, y] = pane.px_getxy();
-    const [width, height] = pane.px_getWidthHeight();
+    const [x, y] = pane.getXYByPixel();
+    const [width, height] = pane.getWidthHeightByPixel();
     const zIndex = pane.getZIndexLevel();
     const $paneEl = $('<div class="pane"><div class="resizer"></div></div>');
-    $paneEl.data('pane-symbol', paneId);
+    $paneEl.data('pane-id', paneId);
     $paneEl.css('position', 'absolute');
     $paneEl.css('background-color', '#007ee6');
     $paneEl.css('left', `${x}px`);
@@ -23,8 +23,8 @@ function drawGrid(gridInstance, withPreview = false) {
   let $previewPaneEl = null;
   if (withPreview) {
     const previewPane = gridInstance.getPreviewPane();
-    const [x, y] = previewPane.px_getxy();
-    const [width, height] = previewPane.px_getWidthHeight();
+    const [x, y] = previewPane.getXYByPixel();
+    const [width, height] = previewPane.getWidthHeightByPixel();
     const zIndex = previewPane.getZIndexLevel();
     $previewPaneEl = $('<div class="preview-pane"></div>');
     $previewPaneEl.css('position', 'absolute');
@@ -33,7 +33,7 @@ function drawGrid(gridInstance, withPreview = false) {
     $previewPaneEl.css('width', `${width}px`);
     $previewPaneEl.css('height', `${height}px`);
     $previewPaneEl.css('z-index', `${zIndex}`);
-    if (gridInstance.hasPreviewCollision()) {
+    if (gridInstance.isHavingCollisionWithPreviewPane()) {
       $previewPaneEl.css('background-color', '#ff000040');
     } else {
       $previewPaneEl.css('background-color', '#007ee640');
@@ -49,113 +49,113 @@ function drawGrid(gridInstance, withPreview = false) {
 $(document).ready(function() {
   const $gridEl = $('#flexigrid');
 
-  const grid = flexiGrid({width: $gridEl.innerWidth(), rowHeight: 60, gap: 10});
+  const grid = flexiGrid({widthByPixel: $gridEl.innerWidth(), rowHeightByPixel: 60, gapByPixel: 10});
   window.grid = grid;
 
-  grid.setPreviewPane(flexiPane({onGridx: 10, onGridy: 0, onGridWidth: 1, onGridHeight: 1}));
+  grid.setPreviewPane(flexiPane({xByGridCell: 10, yByGridCell: 0, widthByGridCell: 1, heightByGridCell: 1}));
 
-  grid.addPane(flexiPane({onGridx: 0, onGridy: 0, onGridWidth: 5, onGridHeight: 3}));
-  grid.addPane(flexiPane({onGridx: 0, onGridy: 3, onGridWidth: 5, onGridHeight: 3}));
-  grid.addPane(flexiPane({onGridx: 5, onGridy: 3, onGridWidth: 6, onGridHeight: 3}));
-  grid.addPane(flexiPane({onGridx: 0, onGridy: 6, onGridWidth: 16, onGridHeight: 3}));
+  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 0, widthByGridCell: 5, heightByGridCell: 3}));
+  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 3, widthByGridCell: 5, heightByGridCell: 3}));
+  grid.addPane(flexiPane({xByGridCell: 5, yByGridCell: 3, widthByGridCell: 6, heightByGridCell: 3}));
+  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 6, widthByGridCell: 16, heightByGridCell: 3}));
 
   drawGrid(grid);
 
   let dragMode = false;
   let paneOnDrag = null;
-  let pxOffsetToTopLeftVector = null;
-  let originalGridPosition = null;
+  let offsetToTopLeftVectorByPixel = null;
+  let originalPositionByGridCell = null;
   $gridEl
     .on('mousedown', '.pane', function(e) {
       dragMode = true;
-      paneOnDrag = grid.getPane($(this).data('pane-symbol'));
+      paneOnDrag = grid.getPane($(this).data('pane-id'));
       grid.attachPreview(paneOnDrag);
-      const {top: gridTop, left: gridLeft} = $gridEl.offset();
+      const {top: gridTopLeftXByPixel, left: gridTopLeftYByPixel} = $gridEl.offset();
       const {pageX, pageY} = e;
-      const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
-      const pxTopLeft = paneOnDrag.px_getxy();
-      pxOffsetToTopLeftVector = grid.px_calVector(pxPickPoint, pxTopLeft);
-      originalGridPosition = paneOnDrag.grid_getxy();
+      const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
+      const paneTopLeftByPixel = paneOnDrag.getXYByPixel();
+      offsetToTopLeftVectorByPixel = grid.calculateVectorByPixelOfPixels(pickPointByPixel, paneTopLeftByPixel);
+      originalPositionByGridCell = paneOnDrag.getXYByGridCell();
     })
     .on('mousemove', function(e) {
       if (dragMode) {
         const previewPane = grid.getPreviewPane();
-        const {top: gridTop, left: gridLeft} = $gridEl.offset();
+        const {top: gridTopLeftXByPixel, left: gridTopLeftYByPixel} = $gridEl.offset();
         const {pageX, pageY} = e;
-        const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
-        previewPane.grid_positioning(pxPickPoint, pxOffsetToTopLeftVector);
+        const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
+        previewPane.positioningByGridCellWithPixels(pickPointByPixel, offsetToTopLeftVectorByPixel);
         previewPane.fitToSlot();
-        paneOnDrag.px_positioning(pxPickPoint, pxOffsetToTopLeftVector);
+        paneOnDrag.positioningByPixelWithPixels(pickPointByPixel, offsetToTopLeftVectorByPixel);
         drawGrid(grid, true);
       }
     })
     .on('mouseup', function() {
       if (dragMode) {
-        if (grid.hasPreviewCollision()) {
-          paneOnDrag.grid_setxy(originalGridPosition);
+        if (grid.isHavingCollisionWithPreviewPane()) {
+          paneOnDrag.setXYByGridCell(originalPositionByGridCell);
         } else {
           const previewPane = grid.getPreviewPane();
-          paneOnDrag.grid_setxy(previewPane.grid_getxy());
+          paneOnDrag.setXYByGridCell(previewPane.getXYByGridCell());
         }
         paneOnDrag.fitToSlot();
         grid.detachPreview();
         dragMode = false;
         paneOnDrag = null;
-        pxOffsetToTopLeftVector = null;
+        offsetToTopLeftVectorByPixel = null;
         drawGrid(grid);
       }
     });
 
   let resizeMode = false;
   let paneOnResize = null;
-  let pxOffsetToBottomRightVector = null;
-  let originalGridSize = null;
+  let offsetToBottomRightVectorByPixel = null;
+  let originalSizeByGridCell = null;
   $gridEl
     .on('mousedown', '.resizer', function(e) {
       e.preventDefault();
       e.stopPropagation();
       const $paneEl = $(this).parent('.pane');
       resizeMode = true;
-      paneOnResize = grid.getPane($paneEl.data('pane-symbol'));
+      paneOnResize = grid.getPane($paneEl.data('pane-id'));
       grid.attachPreview(paneOnResize);
-      const {top: gridTop, left: gridLeft} = $gridEl.offset();
+      const {top: gridTopLeftXByPixel, left: gridTopLeftYByPixel} = $gridEl.offset();
       const {pageX, pageY} = e;
-      const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
-      const pxBottomRight = paneOnResize.px_getBottomRightxy();
-      pxOffsetToBottomRightVector = grid.px_calVector(pxPickPoint, pxBottomRight);
-      originalGridSize = paneOnResize.grid_getWidthHeight();
+      const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
+      const paneBottomRightByPixel = paneOnResize.getBottomRightXYByPixel();
+      offsetToBottomRightVectorByPixel = grid.calculateVectorByPixelOfPixels(pickPointByPixel, paneBottomRightByPixel);
+      originalSizeByGridCell = paneOnResize.getWidthHeightByGridCell();
     })
     .on('mousemove', function(e) {
       if (resizeMode) {
         const previewPane = grid.getPreviewPane();
-        const {top: gridTop, left: gridLeft} = $gridEl.offset();
+        const {top: gridTopLeftXByPixel, left: gridTopLeftYByPixel} = $gridEl.offset();
         const {pageX, pageY} = e;
-        const pxPickPoint = [pageX - gridLeft, pageY - gridTop];
-        previewPane.grid_sizing(pxPickPoint, pxOffsetToBottomRightVector);
+        const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
+        previewPane.sizingByGridCellWithPixels(pickPointByPixel, offsetToBottomRightVectorByPixel);
         previewPane.fitToSlot();
-        paneOnResize.px_sizing(pxPickPoint, pxOffsetToBottomRightVector);
+        paneOnResize.sizingByPixelWithPixels(pickPointByPixel, offsetToBottomRightVectorByPixel);
         drawGrid(grid, true);
       }
     })
     .on('mouseup', function() {
       if (resizeMode) {
-        if (grid.hasPreviewCollision()) {
-          paneOnResize.grid_setWidthHeight(originalGridSize);
+        if (grid.isHavingCollisionWithPreviewPane()) {
+          paneOnResize.setWidthHeightByGridCell(originalSizeByGridCell);
         } else {
           const previewPane = grid.getPreviewPane();
-          paneOnResize.grid_setWidthHeight(previewPane.grid_getWidthHeight());
+          paneOnResize.setWidthHeightByGridCell(previewPane.getWidthHeightByGridCell());
         }
         paneOnResize.fitToSlot();
         grid.detachPreview();
         resizeMode = false;
         paneOnResize = null;
-        pxOffsetToBottomRightVector = null;
+        offsetToBottomRightVectorByPixel = null;
         drawGrid(grid);
       }
     })
 
   $(window).on('resize', () => {
-    grid.setGridParams({width: $gridEl.innerWidth()});
+    grid.setGridParameter({widthByPixel: $gridEl.innerWidth()});
     drawGrid(grid)
   });
 });
