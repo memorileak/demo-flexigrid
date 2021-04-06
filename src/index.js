@@ -1,49 +1,99 @@
 import {flexiGrid, flexiPane} from '@tpacks/flexigrid';
 
-function drawGrid(gridInstance, withPreview = false) {
+function drawGridWithoutPreviewPane(gridInstance) {
+  const panes = getPanesFromGridInstance(gridInstance);
+  setHeightForGridByHeightOfGridInstance(gridInstance);
+  clearCurrentGrid();
+  renderToGridJqueryPanes(makeJqueryPanesFromPanes(panes));
+}
+
+function drawGridWithPreviewPane(gridInstance) {
+  if (gridInstance.isHavingCollisionWithPreviewPane()) {
+    drawGridWithCollidedPreviewPane(gridInstance);
+  } else {
+    drawGridWithNotCollidedPreviewPane(gridInstance);
+  }
+}
+
+function drawGridWithNotCollidedPreviewPane(gridInstance) {
+  const panes = getPanesFromGridInstance(gridInstance);
+  const previewPane = gridInstance.getPreviewPane();
+  setHeightForGridByHeightOfGridInstance(gridInstance);
+  clearCurrentGrid();
+  renderToGridJqueryPanes(makeJqueryPanesFromPanes(panes));
+  renderToGridJqueryPreviewPane(makeNotCollidedJqueryPreviewPaneFromPane(previewPane));
+}
+
+function drawGridWithCollidedPreviewPane(gridInstance) {
+  const panes = getPanesFromGridInstance(gridInstance);
+  const previewPane = gridInstance.getPreviewPane();
+  setHeightForGridByHeightOfGridInstance(gridInstance);
+  clearCurrentGrid();
+  renderToGridJqueryPanes(makeJqueryPanesFromPanes(panes));
+  renderToGridJqueryPreviewPane(makeCollidedJqueryPreviewPaneFromPane(previewPane));
+}
+
+function getPanesFromGridInstance(gridInstance) {
+  return gridInstance.getPaneIds().map((paneId) => gridInstance.getPane(paneId));
+}
+
+function setHeightForGridByHeightOfGridInstance(gridInstance) {
   const gridHeight = gridInstance.getGridHeightByPixel();
-  let $paneEls = [];
-  for (const paneId of gridInstance.getPaneIds()) {
-    const pane = gridInstance.getPane(paneId);
+  $('#flexigrid').css('height', `${gridHeight}px`);
+}
+
+function clearCurrentGrid() {
+  $('#flexigrid').empty();
+}
+
+function renderToGridJqueryPanes($panes) {
+  $('#flexigrid').append($panes);
+}
+
+function renderToGridJqueryPreviewPane($previewPane) {
+  $('#flexigrid').append($previewPane);
+}
+
+function makeJqueryPanesFromPanes(panes) {
+  const $panes = [];
+  for (let i = 0; i < panes.length; i += 1) {
+    const pane = panes[i];
     const [x, y] = pane.getXYByPixel();
     const [width, height] = pane.getWidthHeightByPixel();
     const zIndex = pane.getZIndexLevel();
-    const $paneEl = $('<div class="pane"><div class="resizer"></div></div>');
-    $paneEl.data('pane-id', paneId);
-    $paneEl.css('position', 'absolute');
-    $paneEl.css('background-color', '#007ee6');
-    $paneEl.css('left', `${x}px`);
-    $paneEl.css('top', `${y}px`);
-    $paneEl.css('width', `${width}px`);
-    $paneEl.css('height', `${height}px`);
-    $paneEl.css('z-index', `${zIndex}`);
-    $paneEls.push($paneEl);
+    const $pane = $('<div class="pane"><div class="resizer"></div></div>');
+    $pane.data('pane-id', pane.getId());
+    $pane.css('position', 'absolute');
+    $pane.css('background-color', '#007ee6');
+    $pane.css('left', `${x}px`);
+    $pane.css('top', `${y}px`);
+    $pane.css('width', `${width}px`);
+    $pane.css('height', `${height}px`);
+    $pane.css('z-index', `${zIndex}`);
+    $panes.push($pane);
   }
+  return $panes;
+}
 
-  let $previewPaneEl = null;
-  if (withPreview) {
-    const previewPane = gridInstance.getPreviewPane();
-    const [x, y] = previewPane.getXYByPixel();
-    const [width, height] = previewPane.getWidthHeightByPixel();
-    const zIndex = previewPane.getZIndexLevel();
-    $previewPaneEl = $('<div class="preview-pane"></div>');
-    $previewPaneEl.css('position', 'absolute');
-    $previewPaneEl.css('left', `${x}px`);
-    $previewPaneEl.css('top', `${y}px`);
-    $previewPaneEl.css('width', `${width}px`);
-    $previewPaneEl.css('height', `${height}px`);
-    $previewPaneEl.css('z-index', `${zIndex}`);
-    if (gridInstance.isHavingCollisionWithPreviewPane()) {
-      $previewPaneEl.css('background-color', '#ff000040');
-    } else {
-      $previewPaneEl.css('background-color', '#007ee640');
-    }
-  }
+function makeNotCollidedJqueryPreviewPaneFromPane(previewPane) {
+  const [x, y] = previewPane.getXYByPixel();
+  const [width, height] = previewPane.getWidthHeightByPixel();
+  const zIndex = previewPane.getZIndexLevel();
+  const $previewPane = $('<div class="preview-pane"></div>');
+  $previewPane.css('position', 'absolute');
+  $previewPane.css('left', `${x}px`);
+  $previewPane.css('top', `${y}px`);
+  $previewPane.css('width', `${width}px`);
+  $previewPane.css('height', `${height}px`);
+  $previewPane.css('z-index', `${zIndex}`);
+  $previewPane.css('background-color', '#007ee640');
+  return $previewPane;
+}
 
-  $('#flexigrid').css('height', `${gridHeight}px`);
-  $('#flexigrid').empty();
-  $('#flexigrid').append($previewPaneEl);
-  $('#flexigrid').append($paneEls);
+function makeCollidedJqueryPreviewPaneFromPane(previewPane) {
+  const $previewPane = makeNotCollidedJqueryPreviewPaneFromPane(previewPane);
+  $previewPane.css('background-color', '#ff000040');
+  return $previewPane;
 }
 
 $(document).ready(function() {
@@ -59,7 +109,7 @@ $(document).ready(function() {
   grid.addPane(flexiPane({xByGridCell: 5, yByGridCell: 3, widthByGridCell: 6, heightByGridCell: 3}));
   grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 6, widthByGridCell: 16, heightByGridCell: 3}));
 
-  drawGrid(grid);
+  drawGridWithoutPreviewPane(grid);
 
   let dragMode = false;
   let paneOnDrag = null;
@@ -86,7 +136,7 @@ $(document).ready(function() {
         previewPane.positioningByGridCellWithPixels(pickPointByPixel, offsetToTopLeftVectorByPixel);
         previewPane.fitToSlot();
         paneOnDrag.positioningByPixelWithPixels(pickPointByPixel, offsetToTopLeftVectorByPixel);
-        drawGrid(grid, true);
+        drawGridWithPreviewPane(grid);
       }
     })
     .on('mouseup', function() {
@@ -102,7 +152,7 @@ $(document).ready(function() {
         dragMode = false;
         paneOnDrag = null;
         offsetToTopLeftVectorByPixel = null;
-        drawGrid(grid);
+        drawGridWithoutPreviewPane(grid);
       }
     });
 
@@ -134,7 +184,7 @@ $(document).ready(function() {
         previewPane.sizingByGridCellWithPixels(pickPointByPixel, offsetToBottomRightVectorByPixel);
         previewPane.fitToSlot();
         paneOnResize.sizingByPixelWithPixels(pickPointByPixel, offsetToBottomRightVectorByPixel);
-        drawGrid(grid, true);
+        drawGridWithPreviewPane(grid);
       }
     })
     .on('mouseup', function() {
@@ -150,12 +200,12 @@ $(document).ready(function() {
         resizeMode = false;
         paneOnResize = null;
         offsetToBottomRightVectorByPixel = null;
-        drawGrid(grid);
+        drawGridWithoutPreviewPane(grid);
       }
     })
 
   $(window).on('resize', () => {
     grid.setGridParameter({widthByPixel: $gridEl.innerWidth()});
-    drawGrid(grid)
+    drawGridWithoutPreviewPane(grid);
   });
 });
