@@ -74,7 +74,7 @@ $(document).ready(function() {
       const {pageX, pageY} = e;
       const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
       const paneTopLeftByPixel = paneOnDrag.getXYByPixel();
-      offsetToTopLeftVectorByPixel = grid.calculateVectorByPixelOfPixels(pickPointByPixel, paneTopLeftByPixel);
+      offsetToTopLeftVectorByPixel = grid.calculateVectorByPixelFromPixels(pickPointByPixel, paneTopLeftByPixel);
       originalPositionByGridCell = paneOnDrag.getXYByGridCell();
     })
     .on('mousemove', function(e) {
@@ -122,7 +122,7 @@ $(document).ready(function() {
       const {pageX, pageY} = e;
       const pickPointByPixel = [pageX - gridTopLeftYByPixel, pageY - gridTopLeftXByPixel];
       const paneBottomRightByPixel = paneOnResize.getBottomRightXYByPixel();
-      offsetToBottomRightVectorByPixel = grid.calculateVectorByPixelOfPixels(pickPointByPixel, paneBottomRightByPixel);
+      offsetToBottomRightVectorByPixel = grid.calculateVectorByPixelFromPixels(pickPointByPixel, paneBottomRightByPixel);
       originalSizeByGridCell = paneOnResize.getWidthHeightByGridCell();
     })
     .on('mousemove', function(e) {

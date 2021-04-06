@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/tungnvan/demo-flexigrid#readme",
   "dependencies": {
-    "@tpacks/flexigrid": "git+https://github.com/tungnvan/npm-tpacks-flexigrid.git#d05652538a4e77dfdbe6ffb26f6a772d15524c56"
+    "@tpacks/flexigrid": "git+https://github.com/tungnvan/npm-tpacks-flexigrid.git#bba567ffbc4fe7274c5a8325ce8320eb93d85008"
   },
   "devDependencies": {
     "@babel/core": "^7.13.14",
