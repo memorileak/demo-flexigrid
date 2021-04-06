@@ -1,4 +1,4 @@
-import {flexiGrid, flexiPane} from '@tpacks/flexigrid';
+import {flexiGrid, flexiPane, restoreGridFromDumpData, makeDumpDataFromGrid} from '@tpacks/flexigrid';
 
 function drawGridWithoutPreviewPane(gridInstance) {
   const panes = getPanesFromGridInstance(gridInstance);
@@ -96,18 +96,33 @@ function makeCollidedJqueryPreviewPaneFromPane(previewPane) {
   return $previewPane;
 }
 
+function saveGridDumpDataToLocalStorage(dumpData) {
+  window.localStorage.setItem('grid_dump_data', JSON.stringify(dumpData));
+}
+
+function getGridDumpDataFromLocalStorage() {
+  return JSON.parse(window.localStorage.getItem('grid_dump_data'));
+}
+
 $(document).ready(function() {
   const $gridEl = $('#flexigrid');
 
-  const grid = flexiGrid({widthByPixel: $gridEl.innerWidth(), rowHeightByPixel: 60, gapByPixel: 10});
+  let grid = null;
+  const gridDumpData = getGridDumpDataFromLocalStorage();
+  if (gridDumpData) {
+    grid = restoreGridFromDumpData(gridDumpData);
+  } else {
+    grid = flexiGrid({widthByPixel: $gridEl.innerWidth(), rowHeightByPixel: 60, gapByPixel: 10});
+
+    grid.setPreviewPaneWithRandomId(flexiPane({xByGridCell: 10, yByGridCell: 0, widthByGridCell: 1, heightByGridCell: 1}));
+
+    grid.addPaneWithRandomId(flexiPane({xByGridCell: 0, yByGridCell: 0, widthByGridCell: 5, heightByGridCell: 3}));
+    grid.addPaneWithRandomId(flexiPane({xByGridCell: 0, yByGridCell: 3, widthByGridCell: 5, heightByGridCell: 3}));
+    grid.addPaneWithRandomId(flexiPane({xByGridCell: 5, yByGridCell: 3, widthByGridCell: 6, heightByGridCell: 3}));
+    grid.addPaneWithRandomId(flexiPane({xByGridCell: 0, yByGridCell: 6, widthByGridCell: 16, heightByGridCell: 3}));
+  }
+
   window.grid = grid;
-
-  grid.setPreviewPane(flexiPane({xByGridCell: 10, yByGridCell: 0, widthByGridCell: 1, heightByGridCell: 1}));
-
-  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 0, widthByGridCell: 5, heightByGridCell: 3}));
-  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 3, widthByGridCell: 5, heightByGridCell: 3}));
-  grid.addPane(flexiPane({xByGridCell: 5, yByGridCell: 3, widthByGridCell: 6, heightByGridCell: 3}));
-  grid.addPane(flexiPane({xByGridCell: 0, yByGridCell: 6, widthByGridCell: 16, heightByGridCell: 3}));
 
   drawGridWithoutPreviewPane(grid);
 
@@ -153,6 +168,7 @@ $(document).ready(function() {
         paneOnDrag = null;
         offsetToTopLeftVectorByPixel = null;
         drawGridWithoutPreviewPane(grid);
+        setTimeout(() => {saveGridDumpDataToLocalStorage(makeDumpDataFromGrid(grid))}, 0);
       }
     });
 
@@ -201,6 +217,7 @@ $(document).ready(function() {
         paneOnResize = null;
         offsetToBottomRightVectorByPixel = null;
         drawGridWithoutPreviewPane(grid);
+        setTimeout(() => {saveGridDumpDataToLocalStorage(makeDumpDataFromGrid(grid))}, 0);
       }
     })
 
